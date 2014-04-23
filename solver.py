@@ -1,27 +1,33 @@
 from __future__ import print_function
 from sudoku import *
+from copy import deepcopy
 
 def solve(filename):
 	sboard = init_board(filename)
 	simplify(sboard)
-	backtrack_search(sboard)
+	solved_board = backtrack_search(sboard)
+	pprint(solved_board)
+	return solved_board
 
-
-
-	return
-
-def backtrack_search(sboard):
+def backtrack_search(sboard, depth=0):
 	nums = [i for i in range(1, 1+sboard.BoardSize)]
 	x, y = getEmptySpace(sboard)
 
 	if (x == -1):
 		return sboard
 	else:
+		result_board = False
 		for i in nums:
+
 			new_board = sboard.set_value(x, y, i)
-			if valid_board_p(new_board):
-				next_board = backtrack_search(new_board)
-		return next_board
+			simple_board = deepcopy(new_board)
+			simplify(simple_board)
+
+			next_board = backtrack_search(simple_board, depth+1)
+			if (valid_board_p(simple_board) and valid_board_p(next_board)):
+				result_board = next_board
+
+		return result_board
 
 def getEmptySpace(sboard):
 	for i in range(sboard.BoardSize):
@@ -30,19 +36,64 @@ def getEmptySpace(sboard):
 				return i, j
 	return -1, -1
 
+## Consistency checks ##
+
 def valid_board_p(sboard):
 	## row, col and box checks
+	if (sboard == False):
+		return False
+	return (valid_rows_p(sboard) and valid_cols_p(sboard) and valid_boxes_p(sboard))
 
 
 def valid_array_p(array):
 	nums = [i for i in range(1, 1+len(array))]
 
 	for i in array:
-		if (i != 0 and i not in nums):
-			return False
-		else:
+		if (i in nums):
 			nums.remove(i)
+		elif (i != 0):
+			return False
+
 	return True
+
+
+def valid_rows_p(sboard):
+	for i in range(sboard.BoardSize):
+		array = []
+		for j in range(sboard.BoardSize):
+			array.append(sboard.CurrentGameboard[i][j])
+
+		if not valid_array_p(array):
+			return False
+	return True
+
+def valid_cols_p(sboard):
+	for i in range(sboard.BoardSize):
+		array = []
+		for j in range(sboard.BoardSize):
+			array.append(sboard.CurrentGameboard[j][i])
+
+		if not valid_array_p(array):
+			return False
+
+	return True
+
+def valid_boxes_p(sboard):
+	side_length = int(sboard.BoardSize ** (0.5))
+
+	for squares_row in range(side_length):
+		for squares_col in range(side_length):
+			array = []
+			for i in range(side_length):
+				for j in range(side_length):
+					array.append(sboard.CurrentGameboard[i + squares_row *  side_length][j + squares_col * side_length])
+
+			if not valid_array_p(array):
+				return False
+	return True
+
+
+## Simplifies a board -- fills in all spots that have almost all of their components in it. ##
 
 def simplify(sboard):
 	"""Examines for guaranteed locations and fills those in."""
@@ -70,7 +121,7 @@ def row_check(sboard):
 			array.append(sboard.CurrentGameboard[i][j])
 
 		if count_zeros(array) == 1:
-			j_index, val = get_value(array, sboard.BoardSize)
+			j_index, val = get_missing_value(array, sboard.BoardSize)
 			return i, j_index, val
 
 	return False, False, False
@@ -82,7 +133,7 @@ def col_check(sboard):
 			array.append(sboard.CurrentGameboard[j][i])
 
 		if count_zeros(array) == 1:
-			j_index, val = get_value(array, sboard.BoardSize)
+			j_index, val = get_missing_value(array, sboard.BoardSize)
 			return j_index, i, val
 
 	return False, False, False
@@ -98,7 +149,7 @@ def box_check(sboard):
 					array.append(sboard.CurrentGameboard[i + squares_row *  side_length][j + squares_col * side_length])
 
 			if count_zeros(array) == 1:
-				index, val = get_value(array, sboard.BoardSize)
+				index, val = get_missing_value(array, sboard.BoardSize)
 				x, y = box_coordinate_convert(index, squares_row, squares_col, side_length)
 				return x, y, val
 
@@ -113,7 +164,7 @@ def box_coordinate_convert(index, s_row, s_col, side):
 
 	return row + s_row * side, col + s_col * side
 
-def get_value(array, size):
+def get_missing_value(array, size):
 	nums = [i for i in range(1, 1+size)]
 	index = array.index(0)
 
