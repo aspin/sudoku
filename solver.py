@@ -27,18 +27,18 @@ def solve(filename):
 def backtrack_search(sboard, depth = 0, num_checks=0):
 	x, y = get_empty_space(sboard)
 
-	pprint(sboard)
+	# pprint(sboard)
 
 	if (x == -1):
 		return sboard, num_checks
 	else:
 		result_board = False
 		for i in get_coordinate_values(x, y, sboard):
-			print(get_coordinate_values(x, y, sboard))
+			#print(get_coordinate_values(x, y, sboard))
 
 			new_board = sboard.set_value(x, y, i)
 			simple_board = deepcopy(new_board)
-			simplify(simple_board)
+			#simplify(simple_board)
 			
 			next_board, new_num_checks = backtrack_search(simple_board, depth+1, num_checks+1)
 			num_checks = new_num_checks
@@ -220,7 +220,10 @@ def box_coordinate_convert(index, s_row, s_col, side):
 	return row + s_row * side, col + s_col * side
 
 def get_valid_values(array, size):
-	index = array.index(0)
+	if 0 in array:
+		index = array.index(0)
+	else:
+		index = 5
 	numbs = copy(nums)
 
 	for i in array:
@@ -246,3 +249,5 @@ def pprint(sboard):
 		print("")
 	print("")
 	return
+
+solve("tests/9x9.sudoku")
