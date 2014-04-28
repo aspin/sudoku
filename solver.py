@@ -25,7 +25,8 @@ def solve(filename):
 	return solved_board
 
 def backtrack_search(sboard, depth = 0, num_checks=0):
-	x, y = get_empty_space(sboard)
+	#x, y = get_empty_space(sboard) // proper backtracking
+	x, y = get_mrv(sboard)
 
 	# pprint(sboard)
 
@@ -38,7 +39,10 @@ def backtrack_search(sboard, depth = 0, num_checks=0):
 
 			new_board = sboard.set_value(x, y, i)
 			simple_board = deepcopy(new_board)
-			#simplify(simple_board)
+			# simplify(simple_board)
+
+			# if not valid_board_p(simple_board):
+			# 	simple_board = deepcopy(new_board)
 			
 			next_board, new_num_checks = backtrack_search(simple_board, depth+1, num_checks+1)
 			num_checks = new_num_checks
@@ -51,6 +55,21 @@ def backtrack_search(sboard, depth = 0, num_checks=0):
 		print(num_checks, depth, sep=" | ")
 
 		return result_board, num_checks
+
+# minimum remaining values
+def get_mrv(sboard):
+	zeros = []
+	for i in range(sboard.BoardSize):
+		for j in range(sboard.BoardSize):
+			if (sboard.CurrentGameboard[i][j] == 0):
+				zeros.append([i, j])
+	if not zeros:
+		return -1, -1
+	rem_values = []
+	for i in zeros:
+		rem_values.append([get_coordinate_values(i[0], i[1], sboard), i[0], i[1]])
+	rem_values.sort(key=lambda k: len(k[0]))
+	return rem_values[0][1], rem_values[0][2]
 
 def get_empty_space(sboard):
 	for i in range(sboard.BoardSize):
@@ -249,5 +268,3 @@ def pprint(sboard):
 		print("")
 	print("")
 	return
-
-solve("tests/9x9.sudoku")
