@@ -5,3 +5,10 @@ Backtracking:
 MRV:
 4x4: 11 checks, 0.003 seconds
 9x9: 620 checks, 0.788 seconds
+
+MRV + MCV:
+4x4: 11 checks, 0.003 seconds
+9x9: 110 checks, 0.199 seconds
+16x16: 3209 checks, 14.02 seconds
+
+MRV + MCV + LCV:
