@@ -6,9 +6,31 @@ MRV:
 4x4: 11 checks, 0.003 seconds
 9x9: 620 checks, 0.788 seconds
 
-MRV + MCV:
+MRV + MCV: (LEAST constraining variable implemented...I think)
 4x4: 11 checks, 0.003 seconds
 9x9: 110 checks, 0.199 seconds
 16x16: 3209 checks, 14.02 seconds
+25x25: >80000 checks
+
+WITH Simplify:
+4x4: 3 checks, 0.002 seconds
+9x9: 73 checks, 0.165 seconds 
+16x16: 2530 checks, 15.33 seconds
+25x25: > 300 000 checks
+
+MRV + MCV:
+4x4: 11, 0.003 seconds
+9x9: 643 checks, 1.042 seconds
+16x16: 6379 checks, 27.03 seconds
+25x25:
 
 MRV + MCV + LCV:
+4x4: 11 checks, 0.005 seconds
+9x9: 3486 checks, 6.742 seconds
+16x16: 6137 checks, 29.59 seconds
+
+M
+
+
+494b4c
+191919

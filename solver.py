@@ -34,16 +34,17 @@ def backtrack_search(sboard, depth = 0, num_checks=0):
 		return sboard, num_checks
 	else:
 		result_board = False
-		for i in get_coordinate_values(x, y, sboard): # proper backtracking / mcv + mrv
-		#for i in lcv_sort(get_coordinate_values(x, y, sboard), x, y, sboard):
+		#for i in get_coordinate_values(x, y, sboard): # proper backtracking / mcv + mrv
+		for i in lcv_sort(get_coordinate_values(x, y, sboard), x, y, sboard):
 			#print(get_coordinate_values(x, y, sboard))
 
 			new_board = sboard.set_value(x, y, i)
 			simple_board = deepcopy(new_board)
-			# simplify(simple_board)
+			simplify(simple_board)
 
-			# if not valid_board_p(simple_board):
-			# 	simple_board = deepcopy(new_board)
+			if not valid_board_p(simple_board):
+				return False, num_checks
+				simple_board = deepcopy(new_board)
 			
 			next_board, new_num_checks = backtrack_search(simple_board, depth+1, num_checks+1)
 			num_checks = new_num_checks
@@ -57,39 +58,38 @@ def backtrack_search(sboard, depth = 0, num_checks=0):
 
 		return result_board, num_checks
 
-# lcv
+# lcv ?????
 
 def lcv_sort(vals, x, y, sboard):
-	lcv_scores = [[get_constraintness(vals[i], x, y, sboard), i] for i in range(len(vals))]
+	lcv_scores = [[get_constraintness(vals[i], x, y, sboard), vals[i]] for i in range(len(vals))]
 	lcv_scores.sort(key=lambda k: k[0])
-	return lcv_scores
+
+	return [i[1] for i in lcv_scores]
 
 def get_constraintness(val, x, y, sboard):
 	score = 0
-	# row = sboard.CurrentGameboard[x]
-	# col = [i[y] for i in sboard.CurrentGameboard]
-	# box = get_box_array(x, y, sboard)
+	row = sboard.CurrentGameboard[x]
+	col = [i[y] for i in sboard.CurrentGameboard]
+	box = get_box_array(x, y, sboard)
 	
-	# side_length = int(sboard.BoardSize ** (0.5))
-	# squares_row = x // side_length
-	# squares_col = y // side_length
+	side_length = int(sboard.BoardSize ** (0.5))
+	squares_row = x // side_length
+	squares_col = y // side_length
 
-	# for i in range(len(row)):
-	# 	if row[i] == 0 and val in get_coordinate_values(i, y, sboard):
-	# 		score += 1
+	for i in range(len(row)):
+		if row[i] == 0 and val in get_coordinate_values(i, y, sboard):
+			score += 1
 
-	# for i in range(len(row)):
-	# 	if col[i] == 0 and val in get_coordinate_values(x, i, sboard):
-	# 		score += 1
+	for i in range(len(row)):
+		if col[i] == 0 and val in get_coordinate_values(x, i, sboard):
+			score += 1
 
-	# for i in range(len(box)):
-	# 	if box[i] == 0:
-	# 		x_val, y_val = box_coordinate_convert(i, squares_row, squares_col, side_length)
-	# 		if val in get_coordinate_values(x_val, y_val, sboard):
-	# 			score += 1
+	for i in range(len(box)):
+		if box[i] == 0:
+			x_val, y_val = box_coordinate_convert(i, squares_row, squares_col, side_length)
+			if val in get_coordinate_values(x_val, y_val, sboard):
+				score += 1
 	return score
-
-
 
 # minimum remaining values
 def get_mrv(sboard):
@@ -103,7 +103,8 @@ def get_mrv(sboard):
 
 	rem_values = [[get_coordinate_values(i[0], i[1], sboard), i[0], i[1], get_constrainingness(i[0], i[1], sboard)] for i in zeros]
 
-	rem_values.sort(key=lambda k: k[3])
+	#rem_values.sort(key=lambda k: k[3], reverse=True) # sort order??
+	rem_values.sort(key=lambda k: k[3]) # sort order??
 	rem_values.sort(key=lambda k: len(k[0]))
 	return rem_values[0][1], rem_values[0][2]
 
