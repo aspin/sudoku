@@ -3,7 +3,14 @@ from time import time
 from sudoku import *
 from copy import deepcopy, copy
 
-def solve(filename):
+# KEVIN CHEN
+# KJC004
+# EECS 348
+# HW1, SUDOKU SOLVER
+
+# One method was added to the provided starter code class.
+
+def solve(filename, method="back"):
 	sboard = init_board(filename)
 
 	print("Initial Board: ")
@@ -14,7 +21,13 @@ def solve(filename):
 	nums = [i for i in range(1, 1+sboard.BoardSize)]
 
 	start_time = time()
-	solved_board, num_checks = backtrack_search(sboard)
+	if method == "back":
+		solved_board, num_checks = backtrack_search(sboard)
+	elif method == "forward":
+		solved_board, num_checks = forward_tracking(sboard)
+	else:
+		print("Method ", method, " not implemented.")
+		return
 	end_time = time() - start_time
 
 	print("Solved Board: ")
@@ -24,8 +37,41 @@ def solve(filename):
 	print("Runtime: ", end_time, " seconds")
 	return solved_board
 
-def backtrack_search(sboard, depth = 0, num_checks=0):
-	#x, y = get_empty_space(sboard) // proper backtracking
+#### GENERAL RECURSION ####
+
+def forward_tracking(sboard, depth = 0, num_checks = 0):
+	allowed_values = get_all_allowable_values(sboard)	
+
+	if not allowed_values or any(i[0] == [] for i in allowed_values):
+		return sboard, num_checks
+	else:
+		result_board = False
+		x = allowed_values[0][1]
+		y = allowed_values[0][2]
+		# x, y = get_mrv(sboard)	# for implementing MRV
+		for i in allowed_values[0][0]:
+		# for i in get_coordinate_values(x, y, sboard):	# once again, for MRV
+			new_board = sboard.set_value(x, y, i)
+			simple_board = simplify(deepcopy(new_board))
+
+			if not valid_board_p(simple_board):
+				return False, num_checks
+
+			next_board, new_num_checks = backtrack_search(simple_board, depth+1, num_checks+1)
+			num_checks = new_num_checks
+
+			if valid_board_p(next_board):
+				result_board = next_board
+				if iscomplete(result_board.CurrentGameboard) == True:
+					return result_board, num_checks
+
+		print(num_checks, depth, sep=" | ")
+
+		return result_board, num_checks
+
+# Currently enabled mode: MRV + reverse MCV
+def backtrack_search(sboard, depth = 0, num_checks = 0):
+	#x, y = get_empty_space(sboard) # pure backtracking
 	x, y = get_mrv(sboard)
 
 	# pprint(sboard)
@@ -34,8 +80,8 @@ def backtrack_search(sboard, depth = 0, num_checks=0):
 		return sboard, num_checks
 	else:
 		result_board = False
-		#for i in get_coordinate_values(x, y, sboard): # proper backtracking / mcv + mrv
-		for i in lcv_sort(get_coordinate_values(x, y, sboard), x, y, sboard):
+		for i in get_coordinate_values(x, y, sboard): # pure backtracking / mcv + mrv
+		#for i in lcv_sort(get_coordinate_values(x, y, sboard), x, y, sboard): 	#lcv
 			#print(get_coordinate_values(x, y, sboard))
 
 			new_board = sboard.set_value(x, y, i)
@@ -44,7 +90,6 @@ def backtrack_search(sboard, depth = 0, num_checks=0):
 
 			if not valid_board_p(simple_board):
 				return False, num_checks
-				simple_board = deepcopy(new_board)
 			
 			next_board, new_num_checks = backtrack_search(simple_board, depth+1, num_checks+1)
 			num_checks = new_num_checks
@@ -58,7 +103,20 @@ def backtrack_search(sboard, depth = 0, num_checks=0):
 
 		return result_board, num_checks
 
-# lcv ?????
+def get_all_allowable_values(sboard):
+	zeros = []
+	for i in range(sboard.BoardSize):
+		for j in range(sboard.BoardSize):
+			if (sboard.CurrentGameboard[i][j] == 0):
+				zeros.append([i, j])
+	if not zeros:
+		return False
+
+	return [[get_coordinate_values(i[0], i[1], sboard), i[0], i[1]] for i in zeros]
+
+#### HEURISTIC IMPLEMENTATIONS ####
+
+# lcv functions
 
 def lcv_sort(vals, x, y, sboard):
 	lcv_scores = [[get_constraintness(vals[i], x, y, sboard), vals[i]] for i in range(len(vals))]
@@ -87,24 +145,22 @@ def get_constraintness(val, x, y, sboard):
 	for i in range(len(box)):
 		if box[i] == 0:
 			x_val, y_val = box_coordinate_convert(i, squares_row, squares_col, side_length)
-			if val in get_coordinate_values(x_val, y_val, sboard):
+			if (val in get_coordinate_values(x_val, y_val, sboard)):
 				score += 1
 	return score
 
-# minimum remaining values
+# MRV + MCV tiebreaker
 def get_mrv(sboard):
-	zeros = []
-	for i in range(sboard.BoardSize):
-		for j in range(sboard.BoardSize):
-			if (sboard.CurrentGameboard[i][j] == 0):
-				zeros.append([i, j])
-	if not zeros:
+	rem_values = get_all_allowable_values(sboard)
+
+	if not rem_values:
 		return -1, -1
 
-	rem_values = [[get_coordinate_values(i[0], i[1], sboard), i[0], i[1], get_constrainingness(i[0], i[1], sboard)] for i in zeros]
+	for i in rem_values:
+		i.append(get_constrainingness(i[1], i[2], sboard))
 
-	#rem_values.sort(key=lambda k: k[3], reverse=True) # sort order??
-	rem_values.sort(key=lambda k: k[3]) # sort order??
+	#rem_values.sort(key=lambda k: k[3], reverse=True) # proper MCV
+	rem_values.sort(key=lambda k: k[3]) # stable sort; reverse MCV
 	rem_values.sort(key=lambda k: len(k[0]))
 	return rem_values[0][1], rem_values[0][2]
 
@@ -129,11 +185,11 @@ def get_coordinate_values(x, y, sboard):
 	col = [i[y] for i in sboard.CurrentGameboard]
 	box = get_box_array(x, y, sboard)
 
-	row_vals = get_valid_values(row, sboard.BoardSize) # gets a tuple...
+	row_vals = get_valid_values(row, sboard.BoardSize) # gets a tuple
 	col_vals = get_valid_values(col, sboard.BoardSize)
 	box_vals = get_valid_values(box, sboard.BoardSize)
 
-	vals = [] # dis be inefficient
+	vals = []
 	for i in nums:
 		if (i in row_vals[1] and i in col_vals[1] and i in box_vals[1]):
 			vals.append(i)
@@ -158,6 +214,8 @@ def get_box_array(x, y, sboard):
 			array.append(sboard.CurrentGameboard[i + squares_row][j + squares_col])
 
 	return array
+
+#### BOARD UTILITY FUNCTION ####
 
 ## Consistency checks ##
 

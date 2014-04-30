@@ -16,7 +16,7 @@ WITH Simplify:
 4x4: 3 checks, 0.002 seconds
 9x9: 73 checks, 0.165 seconds 
 16x16: 2530 checks, 15.33 seconds
-25x25: > 300 000 checks
+25x25: > 800 000 checks
 
 MRV + MCV:
 4x4: 11, 0.003 seconds
@@ -29,8 +29,36 @@ MRV + MCV + LCV:
 9x9: 3486 checks, 6.742 seconds
 16x16: 6137 checks, 29.59 seconds
 
-M
+------- 
+Official Trials:
+
+(simplify used)
+Backtracking:
+4x4: 36 checks, 0.007 seconds
+9x9: 23152 checks, 10.28 seconds
+
+(no heuristics):
+Forward Checking:
+4x4: 	5 checks, 0.004 seconds
+9x9:	847 checks, 2.606 seconds
+16x16:  > 70 0000 checks
+
+MRV + MCV:
+4x4:	3 checks, 0.002 seconds
+9x9:	530 checks, 1.122 seconds
+16x16:	5747 checks, 30.66 seconds
+
+MRV + MCV + LCV:
+4x4:    3 checks, 0.008 seconds
+9x9:    345 checks, 0.815 seconds
+16x16:  > 230 000 checks
+
+Interesting:
+MRV + LCV (least contrained variable, not value):
+4x4: 3 checks, 0.002 seconds
+9x9: 73 checks, 0.165 seconds 
+16x16: 2530 checks, 15.33 seconds
+25x25: > 4 000 000 checks
 
 
-494b4c
-191919
+
